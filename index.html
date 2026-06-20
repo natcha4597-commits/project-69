@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบติดตามแผนงานโครงการ - โรงเรียนบ้านวังกระดี่ทอง</title>
+    <!-- Import CSS stylesheet -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <!-- Loading Screen Overlay -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="spinner"></div>
+        <div class="loading-text">กำลังโหลดข้อมูลแผนงานโครงการ...</div>
+    </div>
+
+    <div class="app-container">
+        
+        <!-- Header area -->
+        <header class="glass-panel">
+            <div class="school-logo-area">
+                <!-- Academic Crest SVG Logo -->
+                <svg class="school-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="crestGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#818cf8" />
+                            <stop offset="100%" stop-color="#4f46e5" />
+                        </linearGradient>
+                    </defs>
+                    <path d="M50 5 L85 25 L85 65 C85 80, 50 95, 50 95 C50 95, 15 80, 15 65 L15 25 Z" fill="url(#crestGrad)" />
+                    <path d="M50 12 L78 28 L78 62 C78 74, 50 86, 50 86 C50 86, 22 74, 22 62 L22 28 Z" fill="none" stroke="#ffffff" stroke-width="2.5" />
+                    <!-- School Book Symbol Inside Logo -->
+                    <path d="M35 55 C35 50, 45 48, 50 52 C55 48, 65 50, 65 55 L65 72 C65 67, 55 65, 50 68 C45 65, 35 67, 35 72 Z" fill="#ffffff" />
+                    <line x1="50" y1="52" x2="50" y2="68" stroke="#4f46e5" stroke-width="2" />
+                    <!-- Star on Top -->
+                    <polygon points="50,22 53,30 61,30 55,35 57,43 50,38 43,43 45,35 39,30 47,30" fill="#facc15" />
+                </svg>
+                <div class="title-desc">
+                    <h1>โรงเรียนบ้านวังกระดี่ทอง</h1>
+                    <p>ระบบรายงานสรุปความคืบหน้าและการติดตามแผนงานโครงการสำหรับผู้บริหาร</p>
+                </div>
+            </div>
+            
+            <div class="header-controls">
+                <div class="sync-status">
+                    <p>อัพเดตล่าสุดจาก Google Sheets</p>
+                    <span id="lastUpdated">-</span>
+                </div>
+                <!-- Manual refresh button -->
+                <button id="refreshBtn" class="btn" title="โหลดข้อมูลใหม่">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                    </svg>
+                    <span>รีเฟรชข้อมูล</span>
+                </button>
+                <!-- Theme Toggle Button -->
+                <button id="themeToggle" class="btn btn-icon-only" title="เปลี่ยนธีม">
+                    <svg id="themeMoon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                    <svg id="themeSun" style="display:none;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"/>
+                        <line x1="12" y1="1" x2="12" y2="3"/>
+                        <line x1="12" y1="21" x2="12" y2="23"/>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                        <line x1="1" y1="12" x2="3" y2="12"/>
+                        <line x1="21" y1="12" x2="23" y2="12"/>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- KPI Cards Grid -->
+        <section class="kpi-grid">
+            <!-- Total Projects -->
+            <div class="glass-panel kpi-card" style="--accent-color: #6366f1;">
+                <div class="kpi-header">
+                    <span>จำนวนโครงการทั้งหมด</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                    </svg>
+                </div>
+                <div id="kpiTotalProjects" class="kpi-value">0</div>
+                <div class="kpi-footer">
+                    <span>โครงการในระบบแผนงานปี 2569</span>
+                </div>
+            </div>
+
+            <!-- Total Budget -->
+            <div class="glass-panel kpi-card" style="--accent-color: #3b82f6;">
+                <div class="kpi-header">
+                    <span>งบประมาณทั้งหมด</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="1" x2="12" y2="23"/>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                    </svg>
+                </div>
+                <div id="kpiTotalBudget" class="kpi-value">฿0</div>
+                <div class="kpi-footer">
+                    <span>งบประมาณที่ได้รับการจัดสรร</span>
+                </div>
+            </div>
+
+            <!-- Spent Budget -->
+            <div class="glass-panel kpi-card" style="--accent-color: #ec4899;">
+                <div class="kpi-header">
+                    <span>งบประมาณที่ใช้ไป</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                        <polyline points="17 6 23 6 23 12"/>
+                    </svg>
+                </div>
+                <div id="kpiSpentBudget" class="kpi-value">฿0</div>
+                <div class="kpi-footer">
+                    <span id="spentPercentage" class="kpi-trend neutral">0%</span>
+                    <span>ของงบประมาณทั้งหมด</span>
+                </div>
+            </div>
+
+            <!-- Remaining Budget -->
+            <div class="glass-panel kpi-card" style="--accent-color: #10b981;">
+                <div class="kpi-header">
+                    <span>งบประมาณคงเหลือ</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="4" width="20" height="16" rx="2" ry="2"/>
+                        <line x1="12" y1="4" x2="12" y2="20"/>
+                    </svg>
+                </div>
+                <div id="kpiRemainingBudget" class="kpi-value">฿0</div>
+                <div class="kpi-footer">
+                    <span id="remainPercentage" class="kpi-trend positive">0%</span>
+                    <span>คงเหลือพร้อมใช้ดำเนินงาน</span>
+                </div>
+            </div>
+
+            <!-- Overall Progress -->
+            <div class="glass-panel kpi-card" style="--accent-color: #f59e0b;">
+                <div class="kpi-header">
+                    <span>ความคืบหน้าภาพรวม</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                </div>
+                <div id="kpiAvgProgress" class="kpi-value">0%</div>
+                <div class="kpi-footer">
+                    <span>คำนวณถ่วงน้ำหนักเฉลี่ยโครงการ</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Charts Dashboard Grid -->
+        <section class="dashboard-grid">
+            <!-- Project Status Distribution -->
+            <div class="glass-panel chart-card">
+                <h2>สัดส่วนสถานะการดำเนินงานโครงการ</h2>
+                <div class="chart-container">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Budget by Department -->
+            <div class="glass-panel chart-card">
+                <h2>เปรียบเทียบงบประมาณแยกตามกลุ่มงาน</h2>
+                <div class="chart-container">
+                    <canvas id="deptChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Filters & Project List Area -->
+        <section class="glass-panel" style="display:flex; flex-direction:column; gap:20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+                <h2 style="font-size:1.2rem; font-weight:600;">รายชื่อโครงการและแผนการดำเนินงาน</h2>
+                
+                <!-- Filter Bar -->
+                <div class="filter-bar">
+                    <div class="search-wrapper">
+                        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"/>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        <input id="searchInput" type="text" class="search-input" placeholder="ค้นหาชื่อโครงการ หรือผู้รับผิดชอบ...">
+                    </div>
+                    
+                    <select id="deptFilter" class="select-filter">
+                        <option value="all">ทุกกลุ่มงาน</option>
+                    </select>
+                    
+                    <select id="statusFilter" class="select-filter">
+                        <option value="all">ทุกสถานะ</option>
+                        <option value="ยังไม่ดำเนินการ">ยังไม่ดำเนินการ</option>
+                        <option value="อยู่ระหว่างดำเนินการ">อยู่ระหว่างดำเนินการ</option>
+                        <option value="ดำเนินการแล้ว">ดำเนินการแล้ว</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Data Table wrapper -->
+            <div class="table-wrapper">
+                <table id="projectsTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 80px;">รหัส</th>
+                            <th>ชื่อโครงการ</th>
+                            <th>ผู้รับผิดชอบ</th>
+                            <th>กลุ่มงาน</th>
+                            <th style="text-align: right;">งบประมาณ</th>
+                            <th style="text-align: right;">ใช้ไปแล้ว</th>
+                            <th style="text-align: right;">คงเหลือ</th>
+                            <th style="width: 150px;">ความคืบหน้า</th>
+                            <th style="width: 150px;">สถานะ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        
+    </div>
+
+    <!-- Project Detail Modal -->
+    <div id="detailModal" class="modal-overlay">
+        <div class="modal-content">
+            <button id="modalClose" class="modal-close">&times;</button>
+            <div class="modal-header">
+                <div id="modalDept" class="modal-dept">กลุ่มงานวิชาการ</div>
+                <div id="modalTitle" class="modal-title">อบรมเชิงปฏิบัติการพัฒนาทักษะการเรียนรู้ด้วย AI</div>
+            </div>
+            <div class="modal-body">
+                
+                <div class="modal-grid-2">
+                    <div class="modal-info-item">
+                        <span class="info-label">รหัสโครงการ</span>
+                        <span id="modalId" class="info-value">1</span>
+                    </div>
+                    <div class="modal-info-item">
+                        <span class="info-label">ผู้รับผิดชอบโครงการ</span>
+                        <span id="modalResponsible" class="info-value">นายปกรณ์ อินทรา</span>
+                    </div>
+                </div>
+
+                <div class="modal-grid-2">
+                    <div class="modal-info-item">
+                        <span class="info-label">สถานะการดำเนินงาน</span>
+                        <span id="modalStatus" class="info-value">อยู่ระหว่างดำเนินการ</span>
+                    </div>
+                    <div class="modal-info-item">
+                        <span class="info-label">ความคืบหน้า</span>
+                        <span id="modalProgress" class="info-value">26.67%</span>
+                    </div>
+                </div>
+
+                <!-- Budget section -->
+                <div class="budget-visualizer">
+                    <span class="info-label">สรุปสัดส่วนงบประมาณ</span>
+                    <div class="budget-bar-track">
+                        <div id="modalSpentBar" class="budget-spent-chunk" style="width: 30%;"></div>
+                        <div id="modalRemainBar" class="budget-remain-chunk" style="width: 70%;"></div>
+                    </div>
+                    <div class="budget-legend">
+                        <div class="legend-item">
+                            <span class="legend-dot" style="background: var(--budget-total);"></span>
+                            <span>งบรวม: <strong id="modalBudgetTotal">฿120,000</strong></span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot" style="background: var(--budget-spent);"></span>
+                            <span>ใช้ไป: <strong id="modalBudgetSpent">฿32,000</strong></span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot" style="background: var(--budget-remain);"></span>
+                            <span>คงเหลือ: <strong id="modalBudgetRemain">฿88,000</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- main app logic -->
+    <script src="app.js"></script>
+</body>
+</html>
